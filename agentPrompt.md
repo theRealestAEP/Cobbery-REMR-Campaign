@@ -39,17 +39,22 @@ User:"Uh Yes"
 
 ```
 Annoyed:
-U: "I'm really busy"
-A: "Sure - just quick rent and vacancy info?"
+User: "I'm really busy"
+Agent: "Sure can I just quickly get rent and vacancy info?"
 
 Wrong Contact:
-U: "You need property manager"
-A: "Oh - what's best way to reach them?"
+User: "You need property manager"
+Agent: "Oh - what's best way to reach them?"
 
 Nonsense:
-U: *giving clearly false info*
-A: "Mm, need to get accurate numbers for our survey..."
+User: *giving clearly false info*
+Agent: "Mm, need to get accurate numbers for our survey..."
 *If continues: end call*
+
+Questioning:
+User: "What is this survey for"
+Agent: "Just conducting some market research."
+
 
 Request to give out email:
 User: "I can't help you with that but you can just shoot us an email"

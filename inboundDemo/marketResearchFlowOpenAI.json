@@ -96,88 +96,53 @@
                     "type": "object",
                     "properties": {
                         "room_types": {
-                            "required": [
-                                "bedroom_types"
-                            ],
+                            "type":"object",
                             "properties": {
                                 "bedroom_types": {
                                     "description": "details for each room type",
-                                    "type": [
-                                        "object",
-                                        "null"
-                                    ],
+                                    "type":"object",
                                     "properties": {
                                         "other": {
-                                            "type": [
-                                                "string",
-                                                "null"
-                                            ],
+                                            "type": "string",
                                             "description": "Any notes on any other or special details about the rooms/room types"
                                         },
                                         "1_bedroom": {
-                                            "type": [
-                                                "object",
-                                                "null"
-                                            ],
+                                            "type": "object",
                                             "properties": {
                                                 "rent_price": {
-                                                    "type": [
-                                                        "number",
-                                                        "null"
-                                                    ],
+                                                    "type":"number",
                                                     "description": "the rent price for the 1_bedroom type room. This value should be numeric."
                                                 },
                                                 "unit_count": {
-                                                    "type": [
-                                                        "number",
-                                                        "null"
-                                                    ],
+                                                    "type":"number",
                                                     "description": "The Number of 1_bedroom units. This value should be numeric."
                                                 }
                                             },
                                             "description": "1_bedroom room details"
                                         },
                                         "2_bedroom": {
-                                            "type": [
-                                                "object",
-                                                "null"
-                                            ],
+                                            "type":"object",
                                             "properties": {
                                                 "rent_price": {
-                                                    "type": [
-                                                        "number",
-                                                        "null"
-                                                    ],
+                                                    "type":"number",
                                                     "description": "the rent price for the 2_bedroom type room. This value should be numeric."
                                                 },
                                                 "unit_count": {
-                                                    "type": [
-                                                        "number",
-                                                        "null"
-                                                    ],
+                                                    "type":"number",
                                                     "description": "The Number of 2_bedroom units. This value should be numeric."
                                                 }
                                             },
                                             "description": "2_bedroom room details"
                                         },
                                         "3_bedroom": {
-                                            "type": [
-                                                "object",
-                                                "null"
-                                            ],
+                                            "type": "object",
                                             "properties": {
                                                 "unit_count": {
-                                                    "type": [
-                                                        "number",
-                                                        "null"
-                                                    ],
+                                                    "type":"number",
                                                     "description": "The Number of 3_bedroom units. This value should be numeric."
                                                 },
                                                 "rent_price": {
-                                                    "type": [
-                                                        "number",
-                                                        "null"
-                                                    ],
+                                                    "type":"number",
                                                     "description": "the rent price for the 3_bedroom type room. This value should be numeric."
                                                 }
                                             },
@@ -187,55 +152,33 @@
                                             "properties": {
                                                 "rent_price": {
                                                     "description": "the rent price for the 4_bedroom type room. This value should be numeric.",
-                                                    "type": [
-                                                        "number",
-                                                        "null"
-                                                    ]
+                                                    "type":"number"
                                                 },
                                                 "unit_count": {
-                                                    "type": [
-                                                        "number",
-                                                        "null"
-                                                    ],
+                                                    "type":"number",
                                                     "description": "The Number of 4_bedroom units. This value should be numeric."
                                                 }
                                             },
                                             "description": "4_bedroom room details",
-                                            "type": [
-                                                "object",
-                                                "null"
-                                            ]
+                                            "type":"object"
                                         },
                                         "efficiency": {
-                                            "type": [
-                                                "object",
-                                                "null"
-                                            ],
+                                            "type":"object",
                                             "properties": {
                                                 "rent_price": {
-                                                    "type": [
-                                                        "number",
-                                                        "null"
-                                                    ],
+                                                    "type":"number",
                                                     "description": "the rent price for the efficiency type room. This value should be numeric."
                                                 },
                                                 "unit_count": {
                                                     "description": "The Number of efficiency units",
-                                                    "type": [
-                                                        "number",
-                                                        "null"
-                                                    ]
+                                                    "type":"number"
                                                 }
                                             },
                                             "description": "Efficiency room details"
                                         }
                                     }
                                 }
-                            },
-                            "type": [
-                                "object",
-                                "null"
-                            ]
+                            }
                         },
                         "answered_successfully": {
                             "type": "object",
