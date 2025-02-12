@@ -1,0 +1,372 @@
+
+{
+    "start": {
+      "messages": [
+        {
+          "role": "system",
+          "content": "You are waiting on a ringing outgoing call. If the user picks up, use the `user_picked_up` function. If the user picks up and mentions their name, and it's not the expected contact {{ .data.call_contact }} run `user_picked_up_not_expected_contact` function.  If you detect an answering machine that asks you to leave a messages, use the `voicemail_machine_detected` function. If an answering machine answers and tells you to hold, you should wait until a user connects to the line. If you reach an answering machine or an IVR system that prompts you to enter in an extension you should generate DTFM tones for {{ .metadata.phone_number_ext }} and then wait for a user to be connected or more instructions from the IVR. Additionally, only speak exactly '---' if you need to (don't speak if you don't need to, just call the function)."
+        }
+      ],
+      "functions": [
+        {
+          "name": "user_picked_up",
+          "description": "Begin the invoice verification process"
+        },
+        {
+          "name": "voicemail_machine_detected",
+          "description": "handle voicemail"
+        }
+      ]
+    },
+"user_picked_up": {
+    "skip_llm": true,
+    "messages": [
+        {
+            "role": "system",
+            "content": "You should start by stating your name, who you are calling from, and that you are calling to conduct a survey, and then wait for the user to respond. If the user is available run the `user_is_available` function. If an answering machine picks up and asks you to leave a voice mail, run the `end_call` function. If the user says no to having time run `quick_survey` function. \n\n##EXAMPLE OF AFFIRMATIVE OUTBOUND RESPONSE 'User:hello?\n\nAgent: 'Hi my name is Josh I am calling from Specialty Market Surveyor, I was hoping to conduct a survey on {{.metadata.property_name}}, do you have a few minutes?'\n\nUser:'Yes.'\n\n (run `user_is_available` function)\n\n##EXAMPLE OF NEGATIVE RESPONSE\n\n'User:'Hello?'\n\nAgent: 'Hi my name is Josh I am calling from Specialty Market Surveyor, I hoping to conduct a survey on {{ .metadata.property_name }}, do you have a few minutes?'\n\nUser:'No I can't help you'\n\n( run `quick_survey` function)\n\n##Leaving a voicemail\n\nUser:'You have reached the voice mail of {{ .metadata.property_name }}, please leave a message after the tone'\n\n (run `end_call` function)"
+        }, 
+        {
+            "role": "assistant",
+            "content": "Hi my name is Josh I am calling from Specialty Market Surveyor, I was hoping to conduct a survey on {{.metadata.property_name}}, do you have a few minutes?"
+        }
+    ],
+    "enter_tts": "Hi my name is Josh I am calling from Specialty Market Surveyor, I was hoping to conduct a survey on {{.metadata.property_name}}, do you have a few minutes?",
+
+    "functions": [
+        {
+            "name": "user_is_available",
+            "description": "If the user is available, we start the survey by asking if the property is a tax credit property.",
+            "parameters": {
+                "type": "object",
+                "required": [
+                    "is_available"
+                ],
+                "properties": {
+                    "is_available": {
+                        "type": "boolean",
+                        "description": "Whether the user is available to chat"
+                    }
+                }
+            }
+        },
+        {
+            "name": "quick_survey",
+            "description": "If the user says they don't have time for a full survey run this",
+            "parameters": {
+                "type": "object",
+                "required": [
+                    "is_available"
+                ],
+                "properties": {
+                    "is_available": {
+                        "type": "boolean",
+                        "description": "Whether the user is available to chat"
+                    }
+                }
+            }
+            
+        }
+    ]
+},
+"voicemail_machine_detected":{
+    "messages": [
+        {
+            "role": "system",
+            "content": "run `end_call` function"
+        }
+    ]
+},
+"quick_survey":{
+    "messages": [
+        {
+            "role": "system",
+            "content": "Just ask the user for their room types and respective rent prices. ##EXAMPLE QUICK SURVEY:\n\nAgent:'alright can I please just get the rent prices?'\n\nUser:'Sure efficiencies are $500, 1 bedroom is $1000 2 bedroom is $2000'\n\nAgent:'thanks'\n\n(run `end_call` function)"
+        }
+    ]
+},
+"user_is_available": {
+    "messages": [
+        {
+            "role": "system",
+            "content": "You should start by Asking the user what bedroom types they have i.e efficiency, 1 bedroom, 2 bedroom etc, and 2. ask what each rent price for each bedroom type. Once you have the bedrooms sizes, the rent price for each bedroom size, and then run the `get_rent_price_changes` function to record that data and continue the survey.\n\n##Example Handling Refusals\n\nAgent:'What is the rent price for the 3 bedroom?'\n\nUser:'Sorry I can't tell you, company policy.'\n\nAgent:'Ah ok, uhm is there any information you can give me on this front?'\n\nUser:'No Sorry.'\n\nUser:'My manager is kind of on my back about it so anything would help.'\n\nUser:'no'\n\nAgent:'Got it, well thanks for your time'\n\n( run `end_call` function )\n\n##Example Handling Missing Information\n\n'Agent:'What are the is the rent price for the three bedroom'\n\nUser:'Uh sorry I have no clue' Agent:'No worries, do you have like a best guess estimate?'\n\nUser:'sure maybe $1500?'\n\n( run `get_rent_price_changes` function but in the param make sure your record that it was an estimate)"
+        }
+    ],
+    "functions": [
+        {
+            "name": "get_rent_price_changes",
+            "description": "Figure out if the property is operating at the current year limits",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "bedroom_types": {
+                        "type": "array",
+                        "description": "The different types of bedrooms available",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "efficiency",
+                                "1 bedroom",
+                                "2 bedroom",
+                                "3 bedroom",
+                                "4 bedroom"
+                            ]
+                        }
+                    },
+                    "rent_prices": {
+                        "type": "object",
+                        "description": "Monthly rent price for each bedroom type",
+                        "patternProperties": {
+                            "^(efficiency|[1-4] bedroom)$": {
+                                "type": "number",
+                                "minimum": 0
+                            }
+                        }
+                    },
+                    "ami_levels": {
+                        "type": "object",
+                        "description": "AMI percentage restriction for each bedroom type",
+                        "patternProperties": {
+                            "^(efficiency|[1-4] bedroom)$": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 100
+                            }
+                        }
+                    },
+                    "answered_successfully": {
+                        "type": "object",
+                        "description": "Evaluating if rent prices and room sizes were collected",
+                        "properties": {
+                            "answered_successfully": {
+                                "type": "boolean",
+                                "description": "Were the rent prices and the room sizes information"
+                            },
+                            "reason": {
+                                "type": "string",
+                                "description": "An elaboration on if the rent prices or room size information is missing and the reason why. For example user did not know, user refused etc."
+                            },
+                            "anomaly": {
+                                "type": "string",
+                                "description": "Any potentially anomalous information that might be relevant offered by the user"
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "answered_successfully"
+                ]
+            }
+        }
+    ]
+},
+"get_rent_price_changes": {
+    "messages": [
+        {
+            "role": "system",
+            "content": "You should ask the user what the rent increase was from the prior year. Once you learn the rent increase you should run the `get_vacancy_and_occupancy` function. ##EXAMPLE COLLECTING RENT PRICE\n\nAgent:'Uh Ok, what was the rent price change from last year?'\n\nUser:'it was like 5 percent'\n\n(run the `get_vacancy_and_occupancy` function)\n\n##EXAMPLE GETTING USER TO GUESSTIMATE RENT PRICE INCREASE\n\nAgent:'Uh Ok, what was the rent price change from last year?'\n\nUser:'Uh I dont know sorry'\n\nAgent:'Would you say like two to five percent, or more like eight to ten percent?'\n\nUser:'probably like two to five percent'\n\n(run the `get_vacancy_and_occupancy` function)"
+        }
+    ],
+    "functions": [
+        {
+            "name": "get_vacancy_and_occupancy",
+            "description": "Get occupancy and vacancy details on the property",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "rent_price_change": {
+                        "type": "string",
+                        "description": "Rent price increase recorded as a percentage or as a number. If the user does not know or refuses to answer this should be null"
+                    },
+                    "answered_successfully": {
+                        "type": "object",
+                        "description": "Was the rent price answered successfully?",
+                        "properties": {
+                            "answered_successfully": {
+                                "type": "boolean",
+                                "description": "were the rent price changes learned?"
+                            },
+                            "reason": {
+                                "type": "string",
+                                "description": "if the rent price changes were not learned properly, what was the reason"
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "answered_successfully"
+                ]
+            }
+        }
+    ]
+},
+"get_vacancy_and_occupancy": {
+    "on_enter_play":["https://assets.tangia.co/cobbery/Chicklet_mousclick.wav"],
+    "messages": [
+        {
+            "role": "system",
+            "content": "Ask the user to confirm the total occupancy of the property and the total number of vacant units. And then ask how many of the vacant units are pre leased. If vacancy is more than 5% run the `high_vacancy` function otherwise run the `get_current_waiting_list` function to get waiting list details\n\nEXAMPLE COLLECTING OCCUPANCY AND VACANCY\n\nAgent:'How many units do you have on the property'\n\nUser:'three hundred'\n\nAgent:'and how many vacancies do you have?'\n\nUser:'ten'\n\n(run `get_current_waiting_list` function or run `high_vacancy` function if vacancy is greater than 5%)"
+        }
+    ],
+    "functions": [
+        {
+            "name": "high_vacancy",
+            "description": "This function is used to explore why a property would have more than 5% vacancy",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "property_has_high_vacancy": {
+                        "type": "boolean",
+                        "description": "If property vacancy is more than 5% this will be true"
+                    },
+                    "total_occupancy": {
+                        "type": "number",
+                        "description": "total number of occupants at the property, this value can be determined by taking total number of units and subtracting vacant units from it, record 0 if the user does not know or refuses to provide an answer"
+                    },
+                    "total_vacancy": {
+                        "type": "number",
+                        "description": "total number of vacant units, record 0 if the user does not know or refuses to provide an answer"
+                    },
+                    "answered_successfully": {
+                        "type": "object",
+                        "description": "Was the total occupancy, total vacancy, and if the property has high vacancy all determined successfully?",
+                        "properties": {
+                            "answered_successfully": {
+                                "type": "boolean",
+                                "description": "were the occupancy and vacancy determined?"
+                            },
+                            "reason": {
+                                "type": "string",
+                                "description": "if the occupancy and vacancy determined were not determined properly, what was the reason"
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "answered_successfully"
+                ]
+            }
+        },
+        {
+            "name": "get_current_waiting_list",
+            "description": "Evaluate the current waiting list for vacant units at a property",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "property_has_high_vacancy": {
+                        "type": "boolean",
+                        "description": "If property vacancy is more than 5% this will be true. Record False if this value cannot be determined."
+                    },
+                    "total_occupancy": {
+                        "type": "number",
+                        "description": "total number of occupants at the property, this value can be determined by taking total number of units and subtracting vacant units from it. record 0 if the user does not know or refuses to provide an answer"
+                    },
+                    "total_vacancy": {
+                        "type": "number",
+                        "description": "total number of vacant units. record 0 if the user does not know or refuses to provide an answer"
+                    },
+                    "answered_successfully": {
+                        "type": "object",
+                        "description": "Was the total occupancy, total vacancy, and if the property has high vacancy all determined successfully?",
+                        "properties": {
+                            "answered_successfully": {
+                                "type": "boolean",
+                                "description": "were the occupancy and vacancy determined?"
+                            },
+                            "reason": {
+                                "type": "string",
+                                "description": "if the occupancy and vacancy determined where not determined properly, what was the reason"
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "answered_successfully"
+                ]
+            }
+        }
+    ]
+},
+"high_vacancy": {
+    "messages": [
+        {
+            "role": "system",
+            "content": "Ask the user why the vacancy might be so high and if the property is a tax credit property at the Twenty Twenty four allowable limit, ask if the rent prices just too high for the area? Seek clarifying details. Once you learn about the reason for the high vacancy, you should figure out if the property is operating off of a waiting list by running the `get_current_waiting_list` function\n\n##EXAMPLE LEARNING HIGH VACANCY\n\nAgent:'So vacancy seems a bit high, is the property at the twenty twenty four maximum allowable limit'\n\nUser:'yes'\n\nAgent:'Ok so you think the rent might just be too high for the area'\n\nUser:'Uh yeah maybe'\n\nAgent:'got it'\n\n( run `get_current_waiting_list` function)"
+        }
+    ],
+    "functions": [
+        {
+            "name": "get_current_waiting_list",
+            "description": "Evaluate the current waiting list for vacant units at a property",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "explanation_why_vacancy_high": {
+                        "type": "string",
+                        "description": "Reason why vacancy is so high at the property"
+                    }
+                },
+                "required": [
+                    "explanation_why_vacancy_high"
+                ]
+            }
+        }
+    ]
+},
+"get_current_waiting_list": {
+    "messages": [
+        {
+            "role": "system",
+            "content": "Ask the user if the property is currently operating off of a waiting list (even if the vacancy is high, just re-phrase it to something like 'I know vacancy was a bit high but...'), and if so ask how long that waiting list. Also ask how long it takes for a property to get rented after being listed on the market. After you learn about the waiting list, and rent out rate, there continue the flow by running the `final_questions` function\n\nEXAMPLE GETTING CURRENT WAITING LIST\n\nAgent:'Is the property currently operating off a waiting list?'\n\nUser:'Yes'\n\nAgent:'How long is the waiting list'\n\nUser:'like four people'\n\nAgent:'And how long does it typically take for a room to get rented when one becomes available'\n\n(run `final_questions` function)"
+        }
+    ],
+    "functions": [
+        {
+            "name": "final_questions",
+            "description": "The final set of questions",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "operating_off_waiting_list": {
+                        "type": "boolean",
+                        "description": "boolean if the property is the property operating off a waiting list"
+                    },
+                    "length_of_waiting_list": {
+                        "type": "number",
+                        "description": "number of households on the waiting list. 0 if there is no waiting list"
+                    },
+                    "property_rent_rate": {
+                        "type": "string",
+                        "description": "about how long it takes for a property to get rented after its been listed on the market"
+                    },
+                    "answered_successfully": {
+                        "type": "object",
+                        "description": "Did you learn if the property was operating off a waiting list and the length of that waiting list, and the property rent rate?",
+                        "properties": {
+                            "answered_successfully": {
+                                "type": "boolean",
+                                "description": "Did you learn if the property was operating off a waiting list and the length of that waiting list, and the property rent rate?"
+                            },
+                            "reason": {
+                                "type": "string",
+                                "description": "if you were unable to determine if the property was operating off of a waiting list, the length of the waiting list and the rent rate, what was the reason"
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "answered_successfully"
+                ]
+            }
+        }
+    ]
+},
+"thank_user": {
+    "messages": [
+        {
+            "role": "system",
+            "content": "end the call by using end_call and saying 'That's all the questions I have, thanks so much for your time, have a great day' "
+        }
+    ],
+    "functions": []
+}
+}
