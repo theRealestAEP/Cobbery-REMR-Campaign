@@ -1,0 +1,307 @@
+{
+    "properties": {
+      "occupancy": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "description": "number of total occupants"
+      },
+      "utilities": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "utilities_included"
+        ],
+        "properties": {
+          "utilities_included": {
+            "description": "a list of the utilities included in rent",
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "technical_summary": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Did the agent successfully follow all of the flows and gather required information? Where there any technical oddities where the agent made no sense, cut the user off, went off script, or ended the call early? If anything went wrong please explain."
+      },
+      "high_vacancy": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "was_vacancy_high",
+          "reason"
+        ],
+        "properties": {
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "explanation for why vacancy was high"
+          },
+          "was_vacancy_high": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "was the vacancy more than 5%"
+          }
+        }
+      },
+      "time_to_rent": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "how long does it take for a room to be rented after its been listed"
+      },
+      "waiting_list": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "length_of_waiting_list"
+        ],
+        "properties": {
+          "length_of_waiting_list": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "number of people on the waiting list, null if not answered"
+          }
+        }
+      },
+      "vacancy": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "description": "number of vacant units"
+      },
+      "pre-leased": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "number_of_pre_leased"
+        ],
+        "properties": {
+          "number_of_pre_leased": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "number pre-leased units"
+          }
+        }
+      },
+      "room_types": {
+        "required": [
+          "bedroom_types"
+        ],
+        "properties": {
+          "bedroom_types": {
+            "description": "details for each room type",
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "other": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Any notes on any other or special details about the rooms/room types"
+              },
+              "1_bedroom": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "rent_price": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "description": "the rent price for the 1_bedroom type room. This value should be numeric."
+                  },
+                  "unit_count": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "description": "The Number of 1_bedroom units. This value should be numeric."
+                  }
+                },
+                "description": "1_bedroom room details"
+              },
+              "2_bedroom": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "rent_price": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "description": "the rent price for the 2_bedroom type room. This value should be numeric."
+                  },
+                  "unit_count": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "description": "The Number of 2_bedroom units. This value should be numeric."
+                  }
+                },
+                "description": "2_bedroom room details"
+              },
+              "3_bedroom": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "unit_count": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "description": "The Number of 3_bedroom units. This value should be numeric."
+                  },
+                  "rent_price": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "description": "the rent price for the 3_bedroom type room. This value should be numeric."
+                  }
+                },
+                "description": "3_bedroom room details"
+              },
+              "4_bedroom": {
+                "properties": {
+                  "rent_price": {
+                    "description": "the rent price for the 4_bedroom type room. This value should be numeric.",
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "unit_count": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "description": "The Number of 4_bedroom units. This value should be numeric."
+                  }
+                },
+                "description": "4_bedroom room details",
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "efficiency": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "rent_price": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "description": "the rent price for the efficiency type room. This value should be numeric."
+                  },
+                  "unit_count": {
+                    "description": "The Number of efficiency units",
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                },
+                "description": "Efficiency room details"
+              }
+            }
+          }
+        },
+        "type": [
+          "object",
+          "null"
+        ]
+      },
+      "call_summary": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "A subjective review of the call that includes a summary of the information gathered, anomalies or oddities with the property, and a reflection of how the call actually went i.e was the user upset, angry, or confused at any point? were any data skipped?"
+      },
+      "construction": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "has_construction",
+          "scope_of_construction"
+        ],
+        "properties": {
+          "has_construction": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "is there on going construction at the property? ( or renovations )"
+          },
+          "scope_of_construction": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Scope of the construction or renovations that are happening (if any)"
+          }
+        }
+      }
+    },
+    "type": [
+      "object",
+      "null"
+    ],
+    "required": [
+      "room_types",
+      "occupancy",
+      "vacancy",
+      "high_vacancy",
+      "utilities",
+      "time_to_rent",
+      "call_summary",
+      "construction",
+      "technical_summary"
+    ]
+  }

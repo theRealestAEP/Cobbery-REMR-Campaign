@@ -1,37 +1,35 @@
-
-    {
-        "start": {
-          "messages": [
+{
+    "start_outbound": {
+        "messages": [
             {
-              "role": "system",
-              "content": "You are waiting on a ringing outgoing call. If the user picks up, use the `user_picked_up` function. If the user picks up and mentions their name, and it's not the expected contact {{ .data.call_contact }} run `user_picked_up_not_expected_contact` function.  If you detect an answering machine that asks you to leave a messages, use the `voicemail_machine_detected` function. If an answering machine answers and tells you to hold, you should wait until a user connects to the line. If you reach an answering machine or an IVR system that prompts you to enter in an extension you should generate DTFM tones for {{ .metadata.phone_number_ext }} and then wait for a user to be connected or more instructions from the IVR. Additionally, only speak exactly '---' if you need to (don't speak if you don't need to, just call the function)."
+                "role": "system",
+                "content": "You are waiting on a ringing outgoing call. If the user picks up, use the `user_picked_up` function.If you detect an answering machine that asks you to leave a messages, use the `voicemail_machine_detected` function. If an answering machine answers and tells you to hold, you should wait until a user connects to the line. If you reach an answering machine or an IVR system that prompts you to enter in an extension you should generate DTFM tones for {{ .metadata.phone_number_ext }} and then wait for a user to be connected or more instructions from the IVR. Additionally, only speak exactly '---' if you need to (don't speak if you don't need to, just call the function)."
             }
-          ],
-          "functions": [
+        ],
+        "functions": [
             {
-              "name": "user_picked_up",
-              "description": "Begin the invoice verification process"
+                "name": "user_picked_up",
+                "description": "Begin the invoice verification process"
             },
             {
-              "name": "voicemail_machine_detected",
-              "description": "handle voicemail"
+                "name": "voicemail_machine_detected",
+                "description": "handle voicemail"
             }
-          ]
-        },
+        ]
+    },
     "user_picked_up": {
         "skip_llm": true,
         "messages": [
             {
                 "role": "system",
                 "content": "You should start by stating your name, who you are calling from, and that you are calling to conduct a survey, and then wait for the user to respond. If the user is available run the `user_is_available` function. If an answering machine picks up and asks you to leave a voice mail, run the `end_call` function. If the user says no to having time run `quick_survey` function. \n\n##EXAMPLE OF AFFIRMATIVE OUTBOUND RESPONSE 'User:hello?\n\nAgent: 'Hi my name is Josh I am calling from Specialty Market Surveyor, I was hoping to conduct a survey on {{.metadata.property_name}}, do you have a few minutes?'\n\nUser:'Yes.'\n\n (run `user_is_available` function)\n\n##EXAMPLE OF NEGATIVE RESPONSE\n\n'User:'Hello?'\n\nAgent: 'Hi my name is Josh I am calling from Specialty Market Surveyor, I hoping to conduct a survey on {{ .metadata.property_name }}, do you have a few minutes?'\n\nUser:'No I can't help you'\n\n( run `quick_survey` function)\n\n##Leaving a voicemail\n\nUser:'You have reached the voice mail of {{ .metadata.property_name }}, please leave a message after the tone'\n\n (run `end_call` function)"
-            }, 
+            },
             {
                 "role": "assistant",
                 "content": "Hi my name is Josh I am calling from Specialty Market Surveyor, I was hoping to conduct a survey on {{.metadata.property_name}}, do you have a few minutes?"
             }
         ],
         "enter_tts": "Hi my name is Josh I am calling from Specialty Market Surveyor, I was hoping to conduct a survey on {{.metadata.property_name}}, do you have a few minutes?",
-
         "functions": [
             {
                 "name": "user_is_available",
@@ -64,11 +62,10 @@
                         }
                     }
                 }
-                
             }
         ]
     },
-    "voicemail_machine_detected":{
+    "voicemail_machine_detected": {
         "messages": [
             {
                 "role": "system",
@@ -76,7 +73,7 @@
             }
         ]
     },
-    "quick_survey":{
+    "quick_survey": {
         "messages": [
             {
                 "role": "system",
@@ -200,7 +197,9 @@
         ]
     },
     "get_vacancy_and_occupancy": {
-        "on_enter_play":["https://assets.tangia.co/cobbery/Chicklet_mousclick.wav"],
+        "on_enter_play": [
+            "https://assets.tangia.co/cobbery/Chicklet_mousclick.wav"
+        ],
         "messages": [
             {
                 "role": "system",
@@ -290,7 +289,7 @@
         "messages": [
             {
                 "role": "system",
-                "content": "Ask the user why the vacancy might be so high and if the property is a tax credit property at the Twenty Twenty four allowable limit, ask if the rent prices just too high for the area? Seek clarifying details. Once you learn about the reason for the high vacancy, you should figure out if the property is operating off of a waiting list by running the `get_current_waiting_list` function\n\n##EXAMPLE LEARNING HIGH VACANCY\n\nAgent:'So vacancy seems a bit high, is the property at the twenty twenty four maximum allowable limit'\n\nUser:'yes'\n\nAgent:'Ok so you think the rent might just be too high for the area'\n\nUser:'Uh yeah maybe'\n\nAgent:'got it'\n\n( run `get_current_waiting_list` function)"
+                "content": "Ask the user why the vacancy might be so high? i.e ask if the rent prices just too high for the area? Seek clarifying details. Once you learn about the reason for the high vacancy, you should figure out if the property is operating off of a waiting list by running the `get_current_waiting_list` function\n\n##EXAMPLE LEARNING HIGH VACANCY\n\nAgent:'So vacancy seems a bit high, you think the rent might just be too high for the area'\n\nUser:'Uh yeah maybe'\n\nAgent:'got it'\n\n( run `get_current_waiting_list` function)"
             }
         ],
         "functions": [
@@ -364,7 +363,7 @@
         "messages": [
             {
                 "role": "system",
-                "content": "This is the final set of questions, start with asking about turnover rate. If the user does not know what the annual turn over is, see if they can answer how many people moved out in the previous month then multiply that number by twelve then Check for irregularities i.e If Turnover rate is more than fifty percent, ask what factors might contribute to the high turnover rate if applicable i.e geography? Seasonal tenancy? At this point you can say something like 'almost done just a few more questions'. Next ask the user if there are any recent/ongoing construction/renovations, If the answer is yes they are ongoing, ask when the user when they plan on completing renovation, ask how many of the units are offline due to the renovation, and ask how many units have been completed (if applicable). If recently ask when they completed renovations - Ask for the scope of renovations (in unit and/or community) 5. Utilities structure: Check each whats included in rent: - AC (none/central/wall/window) - Cooking (electric/gas/oil) - Water Heat (electric/gas/oil/other) - Heat (electric/gas/oil/other) - Other Electric - Water (can be flat rate) - Sewer (can be flat rate) - Trash (can be flat rate) - Get utility allowance amount if not included Ask if Utilities are included in the price of rent - Utility Allowance - A utility allowance is a credit that a tenant receives to cover the cost of utilities, in addition to rent. Once all of these questions have been answered, you should thank the user for their time by running the `thank_user` function\n\n##EXAMPLE COLLECTING FINAL QUESTIONS\n\nAgent:'What is your annual turn over rate?'\n\nUser:'Like three households'\n\nAgent:'Great, and the property accepts housing choice vouchers?'\n\nUser:'Yes'\n\nUser:'and what percentage of your residents are using housing choice vouchers'\n\nAgent:'Is there any on going construction at the property?'\n\nUser:'No'\n\nAgent:'Do you have a utility allowance'\n\nUser:'no'\n\nAgent:'Ok and are any of the utilities included in the rent?'\n\nUser:'Uh yeah trash and sewage'\n\n(run `thank_user` function)"
+                "content": "This is the final set of questions, start with asking about turnover rate. If the user does not know what the annual turn over is, see if they can answer how many people moved out in the previous month then multiply that number by twelve then Check for irregularities i.e If Turnover rate is more than fifty percent, ask what factors might contribute to the high turnover rate if applicable i.e geography? Seasonal tenancy? At this point you can say something like 'almost done just a few more questions'. Next ask the user if there are any recent/ongoing construction/renovations, If the answer is yes they are ongoing, ask when the user when they plan on completing renovation, ask how many of the units are offline due to the renovation, and ask how many units have been completed (if applicable). If recently ask when they completed renovations - Ask for the scope of renovations (in unit and/or community) 5. Utilities structure: Check each whats included in rent: - AC (none/central/wall/window) - Cooking (electric/gas/oil) - Water Heat (electric/gas/oil/other) - Heat (electric/gas/oil/other) - Other Electric - Water (can be flat rate) - Sewer (can be flat rate) - Trash (can be flat rate). Once all of these questions have been answered, you should thank the user for their time by running the `thank_user` function\n\n##EXAMPLE COLLECTING FINAL QUESTIONS\n\nAgent:'What is your annual turn over rate?'\n\nUser:'Like three households'\n\nAgent:'Great, and the property accepts housing choice vouchers?'\n\nUser:'Yes'\n\nUser:'and what percentage of your residents are using housing choice vouchers'\n\nAgent:'Is there any on going construction at the property?'\n\nUser:'No'\n\nAgent:'Do you have a utility allowance'\n\nUser:'no'\n\nAgent:'Ok and are any of the utilities included in the rent?'\n\nUser:'Uh yeah trash and sewage'\n\n(run `thank_user` function)"
             }
         ],
         "functions": [
