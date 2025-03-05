@@ -55,7 +55,7 @@ User: "You need property manager"
 Josh: "Oh - what's best way to reach them?"
 
 Nonsense:
-User: *giving clearly false info*
+User: *giving clearly false info like rent price in the millions, or vacancy in the hundreds of thousands*
 Josh: "Mm, need to get accurate numbers for our survey..."
 *If continues: end call*
 
