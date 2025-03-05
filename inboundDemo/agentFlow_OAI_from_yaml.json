@@ -1,0 +1,421 @@
+{
+  "start_outbound": {
+    "messages": [
+      {
+        "role": "system",
+        "content": "The assistant is waiting on a ringing outgoing call. If the user picks up, use the `user_picked_up` function. If the assistant detects an answering machine that asks the assistant to leave a messages, use the `voicemail_machine_detected` function. \nIf an answering machine answers and tells the assistant to hold, the assistant should wait until a user connects to the line. \nIf the assistant reach an answering machine or an IVR system that prompts the assistant to enter in an extension, generate DTFM tones for {{ .metadata.phone_number_ext }} and then wait for a user to be connected or more instructions from the IVR. \nAdditionally, the assistant should only speak ( '---' )"
+      }
+    ],
+    "functions": [
+      {
+        "name": "user_picked_up",
+        "description": "Begin the invoice verification process"
+      },
+      {
+        "name": "voicemail_machine_detected",
+        "description": "handle voicemail"
+      }
+    ]
+  },
+  "user_picked_up": {
+    "skip_llm": true,
+    "messages": [
+      {
+        "role": "system",
+        "content": "The assistant should start by stating its name, who the assistant is calling from, and that the assistant is calling to conduct a survey, and then wait for the user to respond. \nIf the user is available run the `user_is_available` function. \nIf an answering machine picks up and asks the assistant to leave a voice mail, run the `end_call` function. \nIf the user says no to having time run `quick_survey` function.\n\n## EXAMPLE OF AFFIRMATIVE OUTBOUND RESPONSE \nUser: hello?\nJosh: Hi my name is Josh I am calling from Specialty Market Surveyor, I was hoping to conduct a survey on Pacific Side Apartments, do you have a few minutes?\nUser: Yes.\n(run `user_is_available` function)\n\n##EXAMPLE OF NEGATIVE RESPONSE\nUser: Hello?\nJosh: Hi my name is Josh I am calling from Specialty Market Surveyor, I hoping to conduct a survey on Pacific Side Apartments, do you have a few minutes?'\nUser: No I can't help you\n( run `quick_survey` function)\n\n##Leaving a voicemail\nUser: You have reached the voice mail of Pacific Side Apartments, please leave a message after the tone\n(run `end_call` function)"
+      },
+      {
+        "role": "assistant",
+        "content": "Hi my name is Josh I am calling from Specialty Market Surveyor, I was hoping to conduct a survey on Pacific Side Apartments, do you have a few minutes?"
+      }
+    ],
+    "enter_tts": "Hi my name is Josh I am calling from Specialty Market Surveyor, I was hoping to conduct a survey on Pacific Side Apartments, do you have a few minutes?",
+    "functions": [
+      {
+        "name": "user_is_available",
+        "description": "If the user is available, the assistant should start the survey by asking if the property is a tax credit property.",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "is_available"
+          ],
+          "properties": {
+            "is_available": {
+              "type": "boolean",
+              "description": "Whether the user is available to chat"
+            }
+          }
+        }
+      },
+      {
+        "name": "quick_survey",
+        "description": "If the user says they don't have time for a full survey run this",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "is_available"
+          ],
+          "properties": {
+            "is_available": {
+              "type": "boolean",
+              "description": "Whether the user is available to chat"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "voicemail_machine_detected": {
+    "messages": [
+      {
+        "role": "system",
+        "content": "run `end_call` function"
+      }
+    ]
+  },
+  "quick_survey": {
+    "messages": [
+      {
+        "role": "system",
+        "content": "The assistant should ask the user for the properties room types and respective rent prices. \n\n##EXAMPLE QUICK SURVEY:\n\nJosh:'alright can I please just get the rent prices?'\n\nUser:'Sure efficiencies are $500, 1 bedroom is $1000 2 bedroom is $2000'\n\nJosh:'thanks'\n\n(run `end_call` function)"
+      }
+    ]
+  },
+  "user_is_available": {
+    "messages": [
+      {
+        "role": "system",
+        "content": "The assistant should start by Asking the user what bedroom types they have i.e efficiency, 1 bedroom, 2 bedroom etc, and ask for the rent price range for each bedroom type. \n\nOnce the assistant has the bedrooms sizes and the rent price range for each bedroom size, run the `get_rent_price_changes` function to record that data and continue the survey.\n\n##Example Handling Refusals\n\nJosh: What is the rent price for the 3 bedroom?\n\nUser: Sorry I can't tell you, company policy.\n\nJosh: Ah ok, uhm is there any information you can give me on this front?\n\nUser: No Sorry.\n\nUser: My manager is kind of on my back about it so anything would help.\n\nUser: no\n\nJosh: Got it, well thanks for your time\n\n( run `end_call` function )\n\n##Example Handling Missing Information\n\nJosh: What are the is the rent price for the three bedroom \n\nUser: Uh sorry I have no clue' Josh:'No worries, do you have like a best guess estimate?\n\nUser: sure maybe $1500?\n\n( run `get_rent_price_changes` function but in the parameters make sure your record that it was an estimate)"
+      }
+    ],
+    "functions": [
+      {
+        "name": "get_rent_price_changes",
+        "description": "Figure out if the property is operating at the current year limits",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "room_types": {
+              "type": "object",
+              "properties": {
+                "bedroom_types": {
+                  "description": "details for each room type",
+                  "type": "object",
+                  "properties": {
+                    "other": {
+                      "type": "string",
+                      "description": "Any notes on any other or special details about the rooms/room types"
+                    },
+                    "1_bedroom": {
+                      "type": "object",
+                      "properties": {
+                        "rent_price": {
+                          "type": "number",
+                          "description": "the rent price for the 1_bedroom type room. This value should be numeric."
+                        },
+                        "unit_count": {
+                          "type": "number",
+                          "description": "The Number of 1_bedroom units. This value should be numeric."
+                        }
+                      },
+                      "description": "1_bedroom room details"
+                    },
+                    "2_bedroom": {
+                      "type": "object",
+                      "properties": {
+                        "rent_price": {
+                          "type": "number",
+                          "description": "the rent price for the 2_bedroom type room. This value should be numeric."
+                        },
+                        "unit_count": {
+                          "type": "number",
+                          "description": "The Number of 2_bedroom units. This value should be numeric."
+                        }
+                      },
+                      "description": "2_bedroom room details"
+                    },
+                    "3_bedroom": {
+                      "type": "object",
+                      "properties": {
+                        "unit_count": {
+                          "type": "number",
+                          "description": "The Number of 3_bedroom units. This value should be numeric."
+                        },
+                        "rent_price": {
+                          "type": "number",
+                          "description": "the rent price for the 3_bedroom type room. This value should be numeric."
+                        }
+                      },
+                      "description": "3_bedroom room details"
+                    },
+                    "4_bedroom": {
+                      "properties": {
+                        "rent_price": {
+                          "description": "the rent price for the 4_bedroom type room. This value should be numeric.",
+                          "type": "number"
+                        },
+                        "unit_count": {
+                          "type": "number",
+                          "description": "The Number of 4_bedroom units. This value should be numeric."
+                        }
+                      },
+                      "description": "4_bedroom room details",
+                      "type": "object"
+                    },
+                    "efficiency": {
+                      "type": "object",
+                      "properties": {
+                        "rent_price": {
+                          "type": "number",
+                          "description": "the rent price for the efficiency type room. This value should be numeric."
+                        },
+                        "unit_count": {
+                          "description": "The Number of efficiency units",
+                          "type": "number"
+                        }
+                      },
+                      "description": "Efficiency room details"
+                    }
+                  }
+                }
+              }
+            },
+            "answered_successfully": {
+              "type": "object",
+              "description": "Evaluating if rent prices and room sizes were collected",
+              "properties": {
+                "answered_successfully": {
+                  "type": "boolean",
+                  "description": "Were the rent prices and the room sizes information"
+                },
+                "reason": {
+                  "type": "string",
+                  "description": "An elaboration on if the rent prices or room size information is missing and the reason why. For example user did not know, user refused etc."
+                },
+                "anomaly": {
+                  "type": "string",
+                  "description": "Any potentially anomalous information that might be relevant offered by the user"
+                }
+              }
+            }
+          },
+          "required": [
+            "answered_successfully"
+          ]
+        }
+      }
+    ]
+  },
+  "get_rent_price_changes": {
+    "messages": [
+      {
+        "role": "system",
+        "content": "The assistant should ask the user what the rent increase was from the prior year. Once the assistant learns the rent increase, run the `get_vacancy_and_occupancy` function.\n##EXAMPLE COLLECTING RENT PRICE\n\nJosh: Uh Ok, what was the rent price change from last year?\n\nUser: it was like 5 percent\n\n(run the `get_vacancy_and_occupancy` function)\n\n##EXAMPLE GETTING USER TO GUESSTIMATE RENT PRICE INCREASE\n\nJosh: Uh Ok, what was the rent price change from last year?\n\nUser: Uh I don't know sorry\n\nJosh: Would you say like two to five percent, or more like eight to ten percent?\n\nUser: probably like two to five percent\n\n(run the `get_vacancy_and_occupancy` function)"
+      }
+    ],
+    "functions": [
+      {
+        "name": "get_vacancy_and_occupancy",
+        "description": "Get occupancy and vacancy details on the property",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "rent_price_change": {
+              "type": "string",
+              "description": "Rent price increase recorded as a percentage or as a number. If the user does not know or refuses to answer this should be null"
+            },
+            "answered_successfully": {
+              "type": "object",
+              "description": "Was the rent price answered successfully?",
+              "properties": {
+                "answered_successfully": {
+                  "type": "boolean",
+                  "description": "were the rent price changes learned?"
+                },
+                "reason": {
+                  "type": "string",
+                  "description": "if the rent price changes were not learned properly, what was the reason"
+                }
+              }
+            }
+          },
+          "required": [
+            "answered_successfully"
+          ]
+        }
+      }
+    ]
+  },
+  "get_vacancy_and_occupancy": {
+    "on_enter_play": [
+      "https://assets.tangia.co/cobbery/Chicklet_mousclick.wav"
+    ],
+    "messages": [
+      {
+        "role": "system",
+        "content": "Ask the user to confirm the total occupancy of the property and the total number of vacant units. And then ask how many of the vacant units are pre leased. If vacancy is more than 5% run the `high_vacancy` function otherwise run the `get_current_waiting_list` function to get waiting list details\n\n## EXAMPLE COLLECTING OCCUPANCY AND VACANCY\n\nJosh: How many units do you have on the property\n\nUser: three hundred\n\nJosh: and how many vacancies do you have?\n\nUser: ten\n\n(run `get_current_waiting_list` function or run `high_vacancy` function if vacancy is greater than 5%)"
+      }
+    ],
+    "functions": [
+      {
+        "name": "high_vacancy",
+        "description": "This function is used to explore why a property would have more than 5% vacancy",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "property_has_high_vacancy": {
+              "type": "boolean",
+              "description": "If property vacancy is more than 5% this will be true"
+            },
+            "total_occupancy": {
+              "type": "number",
+              "description": "total number of occupants at the property, this value can be determined by taking total number of units and subtracting vacant units from it, record 0 if the user does not know or refuses to provide an answer"
+            },
+            "total_vacancy": {
+              "type": "number",
+              "description": "total number of vacant units, record 0 if the user does not know or refuses to provide an answer"
+            },
+            "answered_successfully": {
+              "type": "object",
+              "description": "Was the total occupancy, total vacancy, and if the property has high vacancy all determined successfully?",
+              "properties": {
+                "answered_successfully": {
+                  "type": "boolean",
+                  "description": "were the occupancy and vacancy determined?"
+                },
+                "reason": {
+                  "type": "string",
+                  "description": "if the occupancy and vacancy determined were not determined properly, what was the reason"
+                }
+              }
+            }
+          },
+          "required": [
+            "answered_successfully"
+          ]
+        }
+      },
+      {
+        "name": "get_current_waiting_list",
+        "description": "Evaluate the current waiting list for vacant units at a property",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "property_has_high_vacancy": {
+              "type": "boolean",
+              "description": "If property vacancy is more than 5% this will be true. Record False if this value cannot be determined."
+            },
+            "total_occupancy": {
+              "type": "number",
+              "description": "total number of occupants at the property, this value can be determined by taking total number of units and subtracting vacant units from it. record 0 if the user does not know or refuses to provide an answer"
+            },
+            "total_vacancy": {
+              "type": "number",
+              "description": "total number of vacant units. record 0 if the user does not know or refuses to provide an answer"
+            },
+            "answered_successfully": {
+              "type": "object",
+              "description": "Was the total occupancy, total vacancy, and if the property has high vacancy all determined successfully?",
+              "properties": {
+                "answered_successfully": {
+                  "type": "boolean",
+                  "description": "were the occupancy and vacancy determined?"
+                },
+                "reason": {
+                  "type": "string",
+                  "description": "if the occupancy and vacancy determined where not determined properly, what was the reason"
+                }
+              }
+            }
+          },
+          "required": [
+            "answered_successfully"
+          ]
+        }
+      }
+    ]
+  },
+  "high_vacancy": {
+    "messages": [
+      {
+        "role": "system",
+        "content": "Ask the user why the vacancy might be so high? i.e ask if the rent prices just too high for the area? Seek clarifying details. Once the assistant learns about the reason for the high vacancy, the assistant should figure out if the property is operating off of a waiting list by running the `get_current_waiting_list` function\n\n##EXAMPLE LEARNING HIGH VACANCY\n\nJosh:'So vacancy seems a bit high, you think the rent might just be too high for the area'\n\nUser:'Uh yeah maybe'\n\nJosh:'got it'\n\n( run `get_current_waiting_list` function)"
+      }
+    ],
+    "functions": [
+      {
+        "name": "get_current_waiting_list",
+        "description": "Evaluate the current waiting list for vacant units at a property",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "explanation_why_vacancy_high": {
+              "type": "string",
+              "description": "Reason why vacancy is so high at the property"
+            }
+          },
+          "required": [
+            "explanation_why_vacancy_high"
+          ]
+        }
+      }
+    ]
+  },
+  "get_current_waiting_list": {
+    "messages": [
+      {
+        "role": "system",
+        "content": "Ask the user if the property is currently operating off of a waiting list (even if the vacancy is high, just re-phrase it to something like 'I know vacancy was a bit high but...'), and if so ask how long that waiting list. Also ask how long it takes for a property to get rented after being listed on the market. After the assistant learns about the waiting list, and rent out rate, there continue the flow by running the `thank_user` function\n\nEXAMPLE GETTING CURRENT WAITING LIST\n\nJosh:'Is the property currently operating off a waiting list?'\n\nUser:'Yes'\n\nJosh:'How long is the waiting list'\n\nUser:'like four people'\n\nJosh:'And how long does it typically take for a room to get rented when one becomes available'\n\n(run `thank_user` function)"
+      }
+    ],
+    "functions": [
+      {
+        "name": "thank_user",
+        "description": "thank the user",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "operating_off_waiting_list": {
+              "type": "boolean",
+              "description": "boolean if the property is the property operating off a waiting list"
+            },
+            "length_of_waiting_list": {
+              "type": "number",
+              "description": "number of households on the waiting list. 0 if there is no waiting list"
+            },
+            "property_rent_rate": {
+              "type": "string",
+              "description": "about how long it takes for a property to get rented after its been listed on the market"
+            },
+            "answered_successfully": {
+              "type": "object",
+              "description": "Did the assistant learn if the property was operating off a waiting list and the length of that waiting list, and the property rent rate?",
+              "properties": {
+                "answered_successfully": {
+                  "type": "boolean",
+                  "description": "Did the assistant learn if the property was operating off a waiting list and the length of that waiting list, and the property rent rate?"
+                },
+                "reason": {
+                  "type": "string",
+                  "description": "if the assistant was unable to determine if the property was operating off of a waiting list, the length of the waiting list and the rent rate, what was the reason"
+                }
+              }
+            }
+          },
+          "required": [
+            "answered_successfully"
+          ]
+        }
+      }
+    ]
+  },
+  "thank_user": {
+    "messages": [
+      {
+        "role": "system",
+        "content": "The assistant should end the call by using `end_call` and saying \"That's all the questions I have, thanks so much for your time, have a great day\""
+      }
+    ],
+    "functions": []
+  }
+}

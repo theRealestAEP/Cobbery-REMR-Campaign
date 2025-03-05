@@ -365,7 +365,7 @@
         "messages": [
             {
                 "role": "system",
-                "content": "Ask the user if the property is currently operating off of a waiting list (even if the vacancy is high, just re-phrase it to something like 'I know vacancy was a bit high but...'), and if so ask how long that waiting list. Also ask how long it takes for a property to get rented after being listed on the market. After you learn about the waiting list, and rent out rate, there continue the flow by running the `final_questions` function\n\nEXAMPLE GETTING CURRENT WAITING LIST\n\nAgent:'Is the property currently operating off a waiting list?'\n\nUser:'Yes'\n\nAgent:'How long is the waiting list'\n\nUser:'like four people'\n\nAgent:'And how long does it typically take for a room to get rented when one becomes available'\n\n(run `final_questions` function)"
+                "content": "Ask the user if the property is currently operating off of a waiting list (even if the vacancy is high, just re-phrase it to something like 'I know vacancy was a bit high but...'), and if so ask how long that waiting list. Also ask how long it takes for a property to get rented after being listed on the market. After you learn about the waiting list, and rent out rate, there continue the flow by running the `thank_user` function\n\nEXAMPLE GETTING CURRENT WAITING LIST\n\nAgent:'Is the property currently operating off a waiting list?'\n\nUser:'Yes'\n\nAgent:'How long is the waiting list'\n\nUser:'like four people'\n\nAgent:'And how long does it typically take for a room to get rented when one becomes available'\n\n(run `thank_user` function)"
             }
         ],
         "functions": [
